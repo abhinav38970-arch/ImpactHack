@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-loop-mist text-loop-ink antialiased;
+    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+      'Helvetica Neue', Arial, sans-serif;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl bg-loop-teal px-4 py-2.5 text-sm font-semibold text-white hover:bg-loop-tealDark disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-loop-teal ring-1 ring-inset ring-loop-teal/30 hover:bg-loop-mist;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-red-700 ring-1 ring-inset ring-red-300 hover:bg-red-50;
+  }
+  .field {
+    @apply mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-loop-teal focus:outline-none focus:ring-2 focus:ring-loop-teal/30;
+  }
+  .label {
+    @apply block text-sm font-medium text-slate-700;
+  }
+  .error-text {
+    @apply mt-1 text-xs text-red-700;
+  }
+  .hint-text {
+    @apply mt-1 text-xs text-slate-500;
+  }
+  .nav-link {
+    @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-loop-mist hover:text-loop-ink;
+  }
+  .nav-link-active {
+    @apply bg-loop-mint/60 text-loop-ink;
+  }
+}
