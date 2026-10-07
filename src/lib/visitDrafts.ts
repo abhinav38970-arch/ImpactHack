@@ -17,11 +17,24 @@ export function selectedDrafts(drafts: GuideDraft[]): GuideDraft[] {
 export function addDraft(
   drafts: GuideDraft[],
   draft: GuideDraft,
-): { drafts: GuideDraft[]; selected: boolean } {
+): { drafts: GuideDraft[]; selected: boolean; duplicate: boolean } {
   const text = draft.text.trim();
-  if (text.length === 0 || text.length > MAX_DRAFT_CHARS) return { drafts, selected: false };
+  if (text.length === 0 || text.length > MAX_DRAFT_CHARS) {
+    return { drafts, selected: false, duplicate: false };
+  }
+  // Never store the same question twice: select the existing one instead.
+  const existing = drafts.find((d) => d.text.trim().toLowerCase() === text.toLowerCase());
+  if (existing) {
+    if (existing.selected) return { drafts, selected: true, duplicate: true };
+    const toggled = toggleDraftSelected(drafts, existing.id);
+    return { drafts: toggled.drafts, selected: toggled.result === 'selected', duplicate: true };
+  }
   const select = selectedDrafts(drafts).length < MAX_SELECTED_DRAFTS;
-  return { drafts: [...drafts, { ...draft, text, selected: select }], selected: select };
+  return {
+    drafts: [...drafts, { ...draft, text, selected: select }],
+    selected: select,
+    duplicate: false,
+  };
 }
 
 export type ToggleResult = 'selected' | 'deselected' | 'full';
@@ -49,4 +62,14 @@ export function toggleDraftSelected(
 
 export function removeDraft(drafts: GuideDraft[], id: string): GuideDraft[] {
   return drafts.filter((d) => d.id !== id);
+}
+
+/** Move a draft earlier (-1) or later (+1) in report order. No-op at edges. */
+export function moveDraft(drafts: GuideDraft[], id: string, dir: -1 | 1): GuideDraft[] {
+  const i = drafts.findIndex((d) => d.id === id);
+  const j = i + dir;
+  if (i === -1 || j < 0 || j >= drafts.length) return drafts;
+  const next = [...drafts];
+  [next[i], next[j]] = [next[j], next[i]];
+  return next;
 }

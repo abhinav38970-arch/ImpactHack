@@ -7,6 +7,7 @@ import {
   loadEnvelope,
   serializeEnvelope,
 } from './storage';
+import { defaultVisitPrep } from './visitPrep';
 
 function envelopeWith(over: Partial<PersistedEnvelope>): string {
   return serializeEnvelope({ ...emptyEnvelope(), ...over });
@@ -36,6 +37,9 @@ describe('loadEnvelope', () => {
         checkins: [],
         reflections: [],
         guideDrafts: [],
+        recordsRev: 0,
+        contentRev: 0,
+        visitPrep: defaultVisitPrep(),
         updatedAt: 'x',
       },
       personal: {
@@ -45,6 +49,9 @@ describe('loadEnvelope', () => {
         checkins: [],
         reflections: [],
         guideDrafts: [],
+        recordsRev: 0,
+        contentRev: 0,
+        visitPrep: defaultVisitPrep(),
         updatedAt: 'x',
       },
       activeMode: 'personal',

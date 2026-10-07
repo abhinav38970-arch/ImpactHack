@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { TrendBars, TrendLines } from '../components/TrendChart';
 import { DisclaimerStrip, EmptyState } from '../components/bits';
 import { formatLong, todayISO } from '../lib/dates';
+import { getVerifiedByIds } from '../lib/guide/registry';
 import {
   aggregateActivityByDay,
   firstLast,
@@ -176,10 +177,51 @@ export default function Trends() {
         />
       )}
 
+      {activeKind && <WhatIsThis kind={activeKind} />}
+
       <div className="card">
         <DisclaimerStrip />
       </div>
     </div>
+  );
+}
+
+const WHAT_IS_THIS: Partial<Record<EntryKind, string>> = {
+  ALT: 'alt',
+  AST: 'ast',
+  GGT: 'ggt',
+  TRIG: 'triglycerides',
+};
+
+function WhatIsThis({ kind }: { kind: EntryKind }) {
+  const id = WHAT_IS_THIS[kind];
+  const entry = id ? getVerifiedByIds([id])[0] : undefined;
+  if (!entry || !entry.body) {
+    if (kind === 'PLATELET' || kind === 'HBA1C') {
+      return (
+        <p className="card !py-3 text-sm text-slate-500">
+          {METRICS[kind].label}: a verified explanation is not yet available.
+        </p>
+      );
+    }
+    return null;
+  }
+  return (
+    <details className="card" aria-label={`What is ${METRICS[kind].label}?`}>
+      <summary className="cursor-pointer text-sm font-semibold text-loop-teal">
+        What is {METRICS[kind].label}?
+      </summary>
+      <div className="mt-2 space-y-1 text-sm text-slate-600">
+        <p><span className="font-medium text-loop-ink">What it measures: </span>{entry.body.measures}</p>
+        <p><span className="font-medium text-loop-ink">What it does not establish: </span>{entry.body.notEstablished}</p>
+        <p className="text-xs">
+          Source:{' '}
+          <a href={entry.sourceUrl} target="_blank" rel="noreferrer" className="font-medium text-loop-teal underline">
+            {entry.sourceTitle}
+          </a>
+        </p>
+      </div>
+    </details>
   );
 }
 

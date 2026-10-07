@@ -21,12 +21,15 @@ import type {
   GuideDraft,
   Habit,
   PersistedEnvelope,
+  PrepItem,
   ProfileState,
   Reflection,
+  ReportPeriod,
 } from '../lib/types';
 import { pauseHabit, resumeHabit, toggleCheckin, upsertReflection } from '../lib/habits';
-import { addDraft, removeDraft, toggleDraftSelected } from '../lib/visitDrafts';
+import { addDraft, moveDraft, removeDraft, toggleDraftSelected } from '../lib/visitDrafts';
 import type { ToggleResult } from '../lib/visitDrafts';
+import { defaultVisitPrep } from '../lib/visitPrep';
 
 export type StorageStatus =
   | { state: 'ready' }
@@ -70,6 +73,18 @@ interface AppContextValue {
   /** Toggle draft selection for the future report. Respects the cap of 3. */
   toggleGuideDraftSelected: (id: string) => ToggleResult;
   removeGuideDraft: (id: string) => void;
+  moveGuideDraft: (id: string, dir: -1 | 1) => void;
+  /** Add a library or custom question (deduped into the shared draft store). */
+  addQuestion: (text: string, source: 'library' | 'custom') => boolean;
+  setVisitPeriod: (period: ReportPeriod) => void;
+  confirmRecordReview: (recordIds: string[]) => void;
+  saveVisitNotes: (text: string) => void;
+  setVisitNoNotes: (value: boolean) => void;
+  setVisitNoQuestions: (value: boolean) => void;
+  addPrepItem: (text: string) => void;
+  togglePrepItem: (id: string) => void;
+  removePrepItem: (id: string) => void;
+  confirmReportPreview: (recordIds: string[], period: ReportPeriod) => void;
   resetDemo: () => void;
   clearPersonal: () => void;
   /** Discard unreadable saved data (a backup is kept) and start fresh. */
@@ -165,6 +180,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             checkins: [],
             reflections: [],
             guideDrafts: [],
+            recordsRev: 0,
+            contentRev: 0,
+            visitPrep: defaultVisitPrep(),
             updatedAt: new Date().toISOString(),
           },
           activeMode: 'personal',
@@ -203,7 +221,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (!activeMode) return;
         mutateMode(activeMode, (prev) =>
           prev
-            ? { ...prev, entries: [...prev.entries, e], updatedAt: new Date().toISOString() }
+            ? {
+                ...prev,
+                entries: [...prev.entries, e],
+                recordsRev: prev.recordsRev + 1,
+                updatedAt: new Date().toISOString(),
+              }
             : prev,
         );
       },
@@ -214,6 +237,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? {
                 ...prev,
                 entries: prev.entries.map((x) => (x.id === e.id ? e : x)),
+                recordsRev: prev.recordsRev + 1,
                 updatedAt: new Date().toISOString(),
               }
             : prev,
@@ -226,6 +250,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? {
                 ...prev,
                 entries: prev.entries.filter((x) => x.id !== id),
+                recordsRev: prev.recordsRev + 1,
                 updatedAt: new Date().toISOString(),
               }
             : prev,
@@ -235,7 +260,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (!activeMode) return;
         mutateMode(activeMode, (prev) =>
           prev
-            ? { ...prev, habits: [...prev.habits, h], updatedAt: new Date().toISOString() }
+            ? {
+                ...prev,
+                habits: [...prev.habits, h],
+                recordsRev: prev.recordsRev + 1,
+                updatedAt: new Date().toISOString(),
+              }
             : prev,
         );
       },
@@ -250,6 +280,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                     ? { ...h, scheduleHistory: [...h.scheduleHistory, segment] }
                     : h,
                 ),
+                recordsRev: prev.recordsRev + 1,
                 updatedAt: new Date().toISOString(),
               }
             : prev,
@@ -263,6 +294,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? {
                 ...prev,
                 habits: prev.habits.map((h) => (h.id === id ? { ...h, title: t } : h)),
+                recordsRev: prev.recordsRev + 1,
                 updatedAt: new Date().toISOString(),
               }
             : prev,
@@ -275,6 +307,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? {
                 ...prev,
                 habits: prev.habits.map((h) => (h.id === id ? pauseHabit(h, fromISO) : h)),
+                recordsRev: prev.recordsRev + 1,
                 updatedAt: new Date().toISOString(),
               }
             : prev,
@@ -287,6 +320,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? {
                 ...prev,
                 habits: prev.habits.map((h) => (h.id === id ? resumeHabit(h, onISO) : h)),
+                recordsRev: prev.recordsRev + 1,
                 updatedAt: new Date().toISOString(),
               }
             : prev,
@@ -303,6 +337,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                     ? { ...h, status: 'archived', archivedAt: new Date().toISOString() }
                     : h,
                 ),
+                recordsRev: prev.recordsRev + 1,
                 updatedAt: new Date().toISOString(),
               }
             : prev,
@@ -315,6 +350,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? {
                 ...prev,
                 checkins: toggleCheckin(prev.checkins, habitId, dateISO),
+                recordsRev: prev.recordsRev + 1,
                 updatedAt: new Date().toISOString(),
               }
             : prev,
@@ -327,6 +363,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? {
                 ...prev,
                 reflections: upsertReflection(prev.reflections, r),
+                recordsRev: prev.recordsRev + 1,
                 updatedAt: new Date().toISOString(),
               }
             : prev,
@@ -339,7 +376,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const res = addDraft(current?.guideDrafts ?? [], draft);
         mutateMode(activeMode, (prev) =>
           prev
-            ? { ...prev, guideDrafts: res.drafts, updatedAt: new Date().toISOString() }
+            ? {
+                ...prev,
+                guideDrafts: res.drafts,
+                contentRev: prev.contentRev + 1,
+                updatedAt: new Date().toISOString(),
+              }
             : prev,
         );
         return res.selected;
@@ -349,11 +391,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const current =
           activeMode === 'demo' ? envelope.demo : envelope.personal;
         const res = toggleDraftSelected(current?.guideDrafts ?? [], id);
-        mutateMode(activeMode, (prev) =>
-          prev
-            ? { ...prev, guideDrafts: res.drafts, updatedAt: new Date().toISOString() }
-            : prev,
-        );
+        mutateMode(activeMode, (prev) => {
+          if (!prev) return prev;
+          const after = toggleDraftSelected(prev.guideDrafts, id);
+          const clearedNoQuestions =
+            after.result === 'selected' ? { noQuestions: false } : {};
+          return {
+            ...prev,
+            guideDrafts: after.drafts,
+            visitPrep: { ...prev.visitPrep, ...clearedNoQuestions },
+            contentRev: prev.contentRev + 1,
+            updatedAt: new Date().toISOString(),
+          };
+        });
         return res.result;
       },
       removeGuideDraft: (id) => {
@@ -363,6 +413,195 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? {
                 ...prev,
                 guideDrafts: removeDraft(prev.guideDrafts, id),
+                contentRev: prev.contentRev + 1,
+                updatedAt: new Date().toISOString(),
+              }
+            : prev,
+        );
+      },
+      moveGuideDraft: (id, dir) => {
+        if (!activeMode) return;
+        mutateMode(activeMode, (prev) =>
+          prev
+            ? {
+                ...prev,
+                guideDrafts: moveDraft(prev.guideDrafts, id, dir),
+                contentRev: prev.contentRev + 1,
+                updatedAt: new Date().toISOString(),
+              }
+            : prev,
+        );
+      },
+      addQuestion: (text, source) => {
+        if (!activeMode) return false;
+        const current =
+          activeMode === 'demo' ? envelope.demo : envelope.personal;
+        const res = addDraft(current?.guideDrafts ?? [], {
+          id: `q-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+          text,
+          selected: true,
+          source,
+          createdAt: new Date().toISOString(),
+        });
+        mutateMode(activeMode, (prev) => {
+          if (!prev) return prev;
+          const after = addDraft(prev.guideDrafts, {
+            id: `q-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+            text,
+            selected: true,
+            source,
+            createdAt: new Date().toISOString(),
+          });
+          return {
+            ...prev,
+            guideDrafts: after.drafts,
+            visitPrep: { ...prev.visitPrep, noQuestions: false },
+            contentRev: prev.contentRev + 1,
+            updatedAt: new Date().toISOString(),
+          };
+        });
+        return res.selected;
+      },
+      setVisitPeriod: (period) => {
+        if (!activeMode) return;
+        mutateMode(activeMode, (prev) =>
+          prev
+            ? {
+                ...prev,
+                visitPrep: { ...prev.visitPrep, period },
+                updatedAt: new Date().toISOString(),
+              }
+            : prev,
+        );
+      },
+      confirmRecordReview: (recordIds) => {
+        if (!activeMode) return;
+        mutateMode(activeMode, (prev) =>
+          prev
+            ? {
+                ...prev,
+                visitPrep: {
+                  ...prev.visitPrep,
+                  reviewedRecordsRev: prev.recordsRev,
+                  reviewedRecordIds: [...recordIds].sort(),
+                },
+                updatedAt: new Date().toISOString(),
+              }
+            : prev,
+        );
+      },
+      saveVisitNotes: (text) => {
+        if (!activeMode) return;
+        mutateMode(activeMode, (prev) =>
+          prev
+            ? {
+                ...prev,
+                visitPrep: { ...prev.visitPrep, notes: text, noNotes: false },
+                contentRev: prev.contentRev + 1,
+                updatedAt: new Date().toISOString(),
+              }
+            : prev,
+        );
+      },
+      setVisitNoNotes: (value) => {
+        if (!activeMode) return;
+        mutateMode(activeMode, (prev) =>
+          prev
+            ? {
+                ...prev,
+                visitPrep: {
+                  ...prev.visitPrep,
+                  noNotes: value,
+                  notes: value ? '' : prev.visitPrep.notes,
+                },
+                contentRev: prev.contentRev + 1,
+                updatedAt: new Date().toISOString(),
+              }
+            : prev,
+        );
+      },
+      setVisitNoQuestions: (value) => {
+        if (!activeMode) return;
+        mutateMode(activeMode, (prev) => {
+          if (!prev) return prev;
+          const drafts = value
+            ? prev.guideDrafts.map((d) => ({ ...d, selected: false }))
+            : prev.guideDrafts;
+          return {
+            ...prev,
+            guideDrafts: drafts,
+            visitPrep: { ...prev.visitPrep, noQuestions: value },
+            contentRev: prev.contentRev + 1,
+            updatedAt: new Date().toISOString(),
+          };
+        });
+      },
+      addPrepItem: (text) => {
+        const t = text.trim();
+        if (!activeMode || t === '') return;
+        mutateMode(activeMode, (prev) => {
+          if (!prev || prev.visitPrep.items.length >= 20) return prev;
+          const item: PrepItem = {
+            id: `pi-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+            text: t,
+            done: false,
+            createdAt: new Date().toISOString(),
+          };
+          return {
+            ...prev,
+            visitPrep: { ...prev.visitPrep, items: [...prev.visitPrep.items, item] },
+            contentRev: prev.contentRev + 1,
+            updatedAt: new Date().toISOString(),
+          };
+        });
+      },
+      togglePrepItem: (id) => {
+        if (!activeMode) return;
+        mutateMode(activeMode, (prev) =>
+          prev
+            ? {
+                ...prev,
+                visitPrep: {
+                  ...prev.visitPrep,
+                  items: prev.visitPrep.items.map((i) =>
+                    i.id === id ? { ...i, done: !i.done } : i,
+                  ),
+                },
+                contentRev: prev.contentRev + 1,
+                updatedAt: new Date().toISOString(),
+              }
+            : prev,
+        );
+      },
+      removePrepItem: (id) => {
+        if (!activeMode) return;
+        mutateMode(activeMode, (prev) =>
+          prev
+            ? {
+                ...prev,
+                visitPrep: {
+                  ...prev.visitPrep,
+                  items: prev.visitPrep.items.filter((i) => i.id !== id),
+                },
+                contentRev: prev.contentRev + 1,
+                updatedAt: new Date().toISOString(),
+              }
+            : prev,
+        );
+      },
+      confirmReportPreview: (recordIds, period) => {
+        if (!activeMode) return;
+        mutateMode(activeMode, (prev) =>
+          prev
+            ? {
+                ...prev,
+                visitPrep: {
+                  ...prev.visitPrep,
+                  previewRecordsRev: prev.recordsRev,
+                  previewContentRev: prev.contentRev,
+                  previewRecordIds: [...recordIds].sort(),
+                  previewPeriod: period,
+                },
                 updatedAt: new Date().toISOString(),
               }
             : prev,

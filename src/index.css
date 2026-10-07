@@ -10,6 +10,32 @@
   }
 }
 
+@media print {
+  /* Report printing: app chrome stays out, content stays readable. */
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  .card,
+  .print-card {
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+    break-inside: avoid-page;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tr.report-row {
+    break-inside: avoid;
+  }
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+}
+
 @layer components {
   .card {
     @apply rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5;

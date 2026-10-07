@@ -1,3 +1,4 @@
+import { defaultVisitPrep } from './visitPrep';
 import type { PersistedEnvelope, ProfileState } from './types';
 
 /**
@@ -11,8 +12,10 @@ import type { PersistedEnvelope, ProfileState } from './types';
  *   v1 envelopes migrate non-destructively on load.
  * - v3: adds guideDrafts (LiverLoop Guide milestone).
  *   v1 and v2 envelopes migrate non-destructively on load.
+ * - v4: adds recordsRev, contentRev, visitPrep (Visit Prep milestone).
+ *   Older envelopes migrate non-destructively on load.
  */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 export const STORAGE_KEY = 'liverloop.v1';
 
 export type LoadResult =
@@ -48,6 +51,18 @@ function isProfileStateV3(v: unknown): boolean {
   return true;
 }
 
+function isProfileStateV4(v: unknown): boolean {
+  if (!isProfileStateV3(v)) return false;
+  if (v === null) return true;
+  const o = v as Record<string, unknown>;
+  if (o.recordsRev !== undefined && typeof o.recordsRev !== 'number') return false;
+  if (o.contentRev !== undefined && typeof o.contentRev !== 'number') return false;
+  if (o.visitPrep !== undefined && (typeof o.visitPrep !== 'object' || o.visitPrep === null)) {
+    return false;
+  }
+  return true;
+}
+
 /** Fill Phase 2 collections. Existing records pass through untouched. */
 export function migrateV1ProfileToV2(v1: unknown): ProfileState {
   const o = v1 as {
@@ -62,6 +77,9 @@ export function migrateV1ProfileToV2(v1: unknown): ProfileState {
     checkins: [],
     reflections: [],
     guideDrafts: [],
+    recordsRev: 0,
+    contentRev: 0,
+    visitPrep: defaultVisitPrep(),
     updatedAt: o.updatedAt,
   };
 }
@@ -87,6 +105,28 @@ function normalizeV3Profile(v: unknown): ProfileState {
     checkins: Array.isArray(o.checkins) ? o.checkins : [],
     reflections: Array.isArray(o.reflections) ? o.reflections : [],
     guideDrafts: Array.isArray(o.guideDrafts) ? o.guideDrafts : [],
+    recordsRev: 0,
+    contentRev: 0,
+    visitPrep: defaultVisitPrep(),
+  } as ProfileState;
+}
+
+/** v4 adds revision counters and visit-prep state; older shapes normalize. */
+function normalizeV4Profile(v: unknown): ProfileState {
+  const o = v as Record<string, unknown>;
+  const prep =
+    typeof o.visitPrep === 'object' && o.visitPrep !== null
+      ? { ...defaultVisitPrep(), ...(o.visitPrep as object) }
+      : defaultVisitPrep();
+  return {
+    ...(v as object),
+    habits: Array.isArray(o.habits) ? o.habits : [],
+    checkins: Array.isArray(o.checkins) ? o.checkins : [],
+    reflections: Array.isArray(o.reflections) ? o.reflections : [],
+    guideDrafts: Array.isArray(o.guideDrafts) ? o.guideDrafts : [],
+    recordsRev: typeof o.recordsRev === 'number' ? o.recordsRev : 0,
+    contentRev: typeof o.contentRev === 'number' ? o.contentRev : 0,
+    visitPrep: prep,
   } as ProfileState;
 }
 
@@ -141,12 +181,31 @@ export function loadEnvelope(raw: string | null): LoadResult {
       },
     };
   }
+  if (o.schemaVersion === 3) {
+    // v3 → v4: keep every record, add revision counters and visit-prep state.
+    if (
+      !isProfileStateV3(o.demo) ||
+      !isProfileStateV3(o.personal) ||
+      (o.activeMode !== null && o.activeMode !== 'demo' && o.activeMode !== 'personal')
+    ) {
+      return { status: 'invalid-json', raw };
+    }
+    return {
+      status: 'ok',
+      envelope: {
+        schemaVersion: SCHEMA_VERSION,
+        demo: o.demo === null ? null : normalizeV3Profile(o.demo),
+        personal: o.personal === null ? null : normalizeV3Profile(o.personal),
+        activeMode: o.activeMode as PersistedEnvelope['activeMode'],
+      },
+    };
+  }
   if (o.schemaVersion !== SCHEMA_VERSION) {
     return { status: 'unsupported-version', found: o.schemaVersion };
   }
   if (
-    !isProfileStateV3(o.demo) ||
-    !isProfileStateV3(o.personal) ||
+    !isProfileStateV4(o.demo) ||
+    !isProfileStateV4(o.personal) ||
     (o.activeMode !== null && o.activeMode !== 'demo' && o.activeMode !== 'personal')
   ) {
     return { status: 'invalid-json', raw };
@@ -155,8 +214,8 @@ export function loadEnvelope(raw: string | null): LoadResult {
     status: 'ok',
     envelope: {
       schemaVersion: SCHEMA_VERSION,
-      demo: o.demo === null ? null : normalizeV3Profile(o.demo),
-      personal: o.personal === null ? null : normalizeV3Profile(o.personal),
+      demo: o.demo === null ? null : normalizeV4Profile(o.demo),
+      personal: o.personal === null ? null : normalizeV4Profile(o.personal),
       activeMode: o.activeMode as PersistedEnvelope['activeMode'],
     },
   };

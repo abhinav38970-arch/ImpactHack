@@ -30,6 +30,39 @@ export default function Opening() {
         </p>
       </div>
 
+      <section className="card !bg-loop-teal !text-white" aria-label="Why LiverLoop matters">
+        <h2 className="text-base font-bold">
+          Fatty liver disease is common. Day-to-day support is rare.
+        </h2>
+        <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-xl bg-white/10 px-2 py-3">
+            <dt className="order-2 mt-1 block text-[11px] leading-tight text-white/80">
+              people live with MASLD worldwide
+            </dt>
+            <dd className="order-1 text-xl font-bold sm:text-2xl">1.3B</dd>
+          </div>
+          <div className="rounded-xl bg-white/10 px-2 py-3">
+            <dt className="order-2 mt-1 block text-[11px] leading-tight text-white/80">
+              projected by 2050
+            </dt>
+            <dd className="order-1 text-xl font-bold sm:text-2xl">1.8B</dd>
+          </div>
+          <div className="rounded-xl bg-white/10 px-2 py-3">
+            <dt className="order-2 mt-1 block text-[11px] leading-tight text-white/80">
+              of US adults affected
+            </dt>
+            <dd className="order-1 text-xl font-bold sm:text-2xl">1 in 4</dd>
+          </div>
+        </dl>
+        <p className="mt-3 text-sm text-white/90">
+          LiverLoop pairs a calm tracking dashboard with an AI companion: record
+          your numbers, reflect on your habits, and walk into appointments prepared.
+        </p>
+        <p className="mt-1 text-[11px] text-white/70">
+          Estimates: Global Burden of Disease Study 2023 (1.3B; 1.8B by 2050); NIDDK (~24% of US adults).
+        </p>
+      </section>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <section className="card flex flex-col" aria-label="Demo profile">
           <h2 className="text-base font-bold text-loop-ink">Explore Maya&apos;s demo</h2>

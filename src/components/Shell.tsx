@@ -31,8 +31,8 @@ export default function Shell() {
   return (
     <div className="min-h-screen">
       <div className="mx-auto flex min-h-screen max-w-6xl">
-        {/* Desktop sidebar */}
-        <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-200 bg-white/70 p-4 md:flex">
+        {/* Desktop sidebar — hidden in print */}
+        <aside className="no-print hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-200 bg-white/70 p-4 md:flex">
           <button
             onClick={() => navigate('/')}
             className="mb-4 flex items-center gap-2 rounded-xl px-2 py-1 text-left"
@@ -71,8 +71,8 @@ export default function Shell() {
 
         {/* Main column */}
         <div className="flex min-w-0 flex-1 flex-col">
-          {/* Mobile top bar */}
-          <header className="flex items-center gap-2 bg-white/70 px-4 py-3 md:hidden">
+          {/* Mobile top bar — hidden in print */}
+          <header className="no-print flex items-center gap-2 bg-white/70 px-4 py-3 md:hidden">
             <span
               aria-hidden
               className="flex h-8 w-8 items-center justify-center rounded-lg bg-loop-teal font-bold text-white"
@@ -92,10 +92,10 @@ export default function Shell() {
             <Outlet />
           </main>
 
-          {/* Mobile bottom tabs */}
+          {/* Mobile bottom tabs — hidden in print */}
           <nav
             aria-label="Primary mobile"
-            className="fixed inset-x-0 bottom-0 grid grid-cols-4 border-t border-slate-200 bg-white px-2 pb-[env(safe-area-inset-bottom)] pt-1 md:hidden"
+            className="no-print fixed inset-x-0 bottom-0 grid grid-cols-4 border-t border-slate-200 bg-white px-2 pb-[env(safe-area-inset-bottom)] pt-1 md:hidden"
           >
             {MOBILE_TABS.map((item) => (
               <NavLink

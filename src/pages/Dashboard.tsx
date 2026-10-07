@@ -11,7 +11,9 @@ import {
   summaryText,
   weekSummary,
 } from '../lib/habits';
+import { tipForDate } from '../lib/insights';
 import { aggregateActivityByDay, seriesFor, unitsForMetric } from '../lib/trends';
+import { prepTaskCount, prepTasks, recordIdsInPeriod } from '../lib/visitPrep';
 import { ENTRY_KINDS, METRICS } from '../lib/units';
 import { useApp } from '../state/AppContext';
 import type { Entry, EntryKind } from '../lib/types';
@@ -91,8 +93,21 @@ export default function Dashboard() {
   const pSeries =
     pKind && pUnit ? seriesFor(entries, pKind, pUnit, today, 'all').slice(-12) : [];
 
-  // Hero order: start → check-in → trends. Never Visit Prep (unfinished).
+  // One verified tip, or neutral help when nothing verified exists.
+  const tip = tipForDate(today);
+
+  // Visit Prep summary (task completion, never medical readiness).
+  const prep = activeProfile?.visitPrep;
+  const recordsRev = activeProfile?.recordsRev ?? 0;
+  const contentRev = activeProfile?.contentRev ?? 0;
+  const drafts = activeProfile?.guideDrafts ?? [];
+  const visitRecordIds = prep ? recordIdsInPeriod(entries, prep.period, today) : [];
+  const tasks = prep ? prepTasks(prep, drafts, recordsRev, contentRev, visitRecordIds) : null;
+  const tasksDone = tasks ? prepTaskCount(tasks) : 0;
+
+  // Hero order: start → check-in → unfinished prep (with appointment) → trends.
   const isEmpty = entries.length === 0 && actives.length === 0;
+  const showPrep = !isEmpty && incompleteToday.length === 0 && visitDate && tasksDone < 4;
   const hero = isEmpty
     ? {
         text: 'Start your loop — record a result or choose a small habit to track.',
@@ -107,7 +122,14 @@ export default function Dashboard() {
           to: '/habits',
           secondary: null,
         }
-      : {
+      : showPrep
+        ? {
+            text: `Visit preparation: ${tasksDone} of 4 tasks completed.`,
+            cta: 'Continue preparation',
+            to: '/visit',
+            secondary: null,
+          }
+        : {
           text:
             entries.length > 0
               ? `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'} recorded. Latest recorded result: ${formatLong(latestAnyDate!)}.`
@@ -204,8 +226,24 @@ export default function Dashboard() {
             </>
           )}
         </SummaryCard>
-        <SummaryCard title="Visit preparation" pending="Visit preparation arrives in a later phase.">
-          <p className="text-slate-500">Not started.</p>
+        <SummaryCard title="Visit preparation">
+          {tasksDone === 0 ? (
+            <p className="text-slate-500">
+              Not started.{' '}
+              <Link to="/visit" className="font-semibold text-loop-teal underline">
+                Start preparing
+              </Link>
+            </p>
+          ) : (
+            <>
+              <p className="text-lg font-bold">{tasksDone} of 4 tasks completed</p>
+              <p className="text-slate-500">
+                <Link to="/visit" className="font-semibold text-loop-teal underline">
+                  Continue preparation
+                </Link>
+              </p>
+            </>
+          )}
         </SummaryCard>
       </div>
 
@@ -309,6 +347,32 @@ export default function Dashboard() {
       {isWeekend && actives.length > 0 && reflectionDone && (
         <p className="text-sm text-slate-500">Reflection saved for this week.</p>
       )}
+
+      {/* Verified learning tip */}
+      <section className="card" aria-label="Tip of the day">
+        <div className="flex items-center">
+          <h2 className="text-base font-bold text-loop-ink">Tip of the day</h2>
+          <Link to="/insights" className="ml-auto text-xs font-semibold text-loop-teal underline">
+            Open Insights
+          </Link>
+        </div>
+        {tip && tip.body ? (
+          <div className="mt-1 text-sm text-slate-600">
+            <p className="font-semibold text-loop-ink">{tip.title}</p>
+            <p className="mt-1">{tip.body.measures}</p>
+            <p className="mt-1 text-xs">
+              Source:{' '}
+              <a href={tip.sourceUrl} target="_blank" rel="noreferrer" className="font-medium text-loop-teal underline">
+                {tip.sourceTitle}
+              </a>
+            </p>
+          </div>
+        ) : (
+          <p className="mt-1 text-sm text-slate-600">
+            New here? Open Log to record your first result, then explore Trends to see it over time.
+          </p>
+        )}
+      </section>
 
       {/* Latest measurements */}
       <section className="card" aria-label="Latest measurements">

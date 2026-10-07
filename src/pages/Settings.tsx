@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DisclaimerStrip, StorageNotice } from '../components/bits';
+import { downloadCsv, exportFilename } from '../lib/csv';
 import { formatLong, todayISO } from '../lib/dates';
+import { checkinsCsv, measurementsCsv, reflectionsCsv } from '../lib/exports';
 import { useApp } from '../state/AppContext';
 
 function ConfirmButton({
@@ -52,6 +54,28 @@ export default function Settings() {
   const [saved, setSaved] = useState(false);
 
   const entries = activeProfile?.entries.length ?? 0;
+  const isDemo = activeMode === 'demo';
+
+  function exportAll(kind: 'measurements' | 'checkins' | 'reflections') {
+    if (!activeProfile) return;
+    const today = todayISO();
+    if (kind === 'measurements') {
+      downloadCsv(
+        exportFilename('measurements', today),
+        measurementsCsv(activeProfile.entries, isDemo),
+      );
+    } else if (kind === 'checkins') {
+      downloadCsv(
+        exportFilename('checkins', today),
+        checkinsCsv(activeProfile.checkins, activeProfile.habits, isDemo),
+      );
+    } else {
+      downloadCsv(
+        exportFilename('reflections', today),
+        reflectionsCsv(activeProfile.reflections, isDemo),
+      );
+    }
+  }
 
   function saveProfile() {
     updateProfile({ displayName: name });
@@ -132,6 +156,23 @@ export default function Settings() {
 
       <section className="card space-y-3" aria-label="Data management">
         <h2 className="text-base font-bold text-loop-ink">Data management</h2>
+        <div className="space-y-2">
+          <p className="text-sm text-slate-600">
+            Download your records as separate CSV files. Demo exports are marked
+            as fictional; downloads stay on your device.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button className="btn-secondary !px-3 !py-2 text-xs" onClick={() => exportAll('measurements')}>
+              Export measurements CSV
+            </button>
+            <button className="btn-secondary !px-3 !py-2 text-xs" onClick={() => exportAll('checkins')}>
+              Export check-ins CSV
+            </button>
+            <button className="btn-secondary !px-3 !py-2 text-xs" onClick={() => exportAll('reflections')}>
+              Export reflections CSV
+            </button>
+          </div>
+        </div>
         {activeMode === 'demo' && (
           <div className="space-y-2">
             <p className="text-sm text-slate-600">

@@ -3,12 +3,14 @@ import Shell from './components/Shell';
 import Dashboard from './pages/Dashboard';
 import Guide from './pages/Guide';
 import Habits from './pages/Habits';
+import Insights from './pages/Insights';
 import Log from './pages/Log';
 import More from './pages/More';
 import Opening from './pages/Opening';
-import Placeholder from './pages/Placeholder';
+import Report from './pages/Report';
 import Settings from './pages/Settings';
 import Trends from './pages/Trends';
+import Visit from './pages/Visit';
 import { useApp } from './state/AppContext';
 
 /**
@@ -74,9 +76,10 @@ export default function App() {
           <Route path="/log" element={<Log />} />
           <Route path="/trends" element={<Trends />} />
           <Route path="/habits" element={<Habits />} />
-          <Route path="/insights" element={<Placeholder page="insights" />} />
+          <Route path="/insights" element={<Insights />} />
           <Route path="/insights/guide" element={<Guide />} />
-          <Route path="/visit" element={<Placeholder page="visit" />} />
+          <Route path="/visit" element={<Visit />} />
+          <Route path="/visit/report" element={<Report />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/more" element={<More />} />
         </Route>

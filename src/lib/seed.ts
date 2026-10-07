@@ -1,5 +1,6 @@
 import { addDaysISO, newId } from './dates';
 import { mondayOf, plannedDates } from './habits';
+import { defaultVisitPrep } from './visitPrep';
 import type { CheckIn, Entry, EntryKind, Habit, ProfileState, Reflection } from './types';
 
 /**
@@ -184,7 +185,38 @@ export function buildDemoSeed(todayISO: string): ProfileState {
     habits,
     checkins,
     reflections,
-    guideDrafts: [],
+    // A few fictional questions, a short note, and one prep item — but the
+    // preparation tasks stay incomplete so judges complete them live.
+    guideDrafts: [
+      {
+        id: 'seed-draft-1',
+        text: 'What do these recorded results mean in my situation?',
+        selected: true,
+        source: 'library' as const,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: 'seed-draft-2',
+        text: 'What information would be useful to track before my next visit?',
+        selected: false,
+        source: 'guide' as const,
+        createdAt: new Date().toISOString(),
+      },
+    ],
+    recordsRev: 0,
+    contentRev: 0,
+    visitPrep: {
+      ...defaultVisitPrep(),
+      notes: 'Walking in the mornings has felt easier than evenings.',
+      items: [
+        {
+          id: 'seed-item-1',
+          text: 'Find my September lab report.',
+          done: false,
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    },
     updatedAt: new Date().toISOString(),
   };
 }

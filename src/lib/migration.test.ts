@@ -96,3 +96,80 @@ describe('v2 to v3 migration', () => {
     expect(res.envelope.personal!.guideDrafts[0].text).toBe('Kept draft');
   });
 });
+
+describe('v3 to v4 migration', () => {
+  it('preserves everything and adds revision counters plus visit-prep state', () => {
+    const raw = JSON.stringify({
+      schemaVersion: 3,
+      demo: {
+        profile: { displayName: 'Maya' },
+        entries: [{ id: 'a', kind: 'ALT', date: '2026-09-01', unit: 'U/L', value: 50 }],
+        habits: [],
+        checkins: [],
+        reflections: [],
+        guideDrafts: [{ id: 'd1', text: 'Kept draft', selected: true, createdAt: 'x' }],
+        updatedAt: 'x',
+      },
+      personal: {
+        profile: { displayName: 'You' },
+        entries: [],
+        habits: [],
+        checkins: [],
+        reflections: [],
+        guideDrafts: [],
+        updatedAt: 'y',
+      },
+      activeMode: 'demo',
+    });
+    const res = loadEnvelope(raw);
+    expect(res.status).toBe('ok');
+    if (res.status !== 'ok') return;
+    expect(res.envelope.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(res.envelope.demo!.entries).toHaveLength(1);
+    expect(res.envelope.demo!.guideDrafts).toHaveLength(1);
+    expect(res.envelope.demo!.recordsRev).toBe(0);
+    expect(res.envelope.demo!.contentRev).toBe(0);
+    expect(res.envelope.demo!.visitPrep.period).toEqual({ kind: 'days', days: 90 });
+    expect(res.envelope.demo!.visitPrep.reviewedRecordsRev).toBeNull();
+    expect(res.envelope.personal!.visitPrep.items).toEqual([]);
+    // Migrated envelope re-serializes and loads cleanly.
+    expect(loadEnvelope(serializeEnvelope(res.envelope)).status).toBe('ok');
+  });
+
+  it('preserves existing v4 revision and prep state', () => {
+    const raw = JSON.stringify({
+      schemaVersion: 4,
+      demo: {
+        profile: { displayName: 'Maya' },
+        entries: [],
+        habits: [],
+        checkins: [],
+        reflections: [],
+        guideDrafts: [],
+        recordsRev: 7,
+        contentRev: 3,
+        visitPrep: {
+          period: { kind: 'all' },
+          noQuestions: true,
+          notes: '',
+          noNotes: false,
+          items: [],
+          reviewedRecordsRev: 7,
+          reviewedRecordIds: [],
+          previewRecordsRev: null,
+          previewContentRev: null,
+          previewRecordIds: null,
+          previewPeriod: null,
+        },
+        updatedAt: 'x',
+      },
+      personal: null,
+      activeMode: 'demo',
+    });
+    const res = loadEnvelope(raw);
+    expect(res.status).toBe('ok');
+    if (res.status !== 'ok') return;
+    expect(res.envelope.demo!.recordsRev).toBe(7);
+    expect(res.envelope.demo!.visitPrep.noQuestions).toBe(true);
+  });
+});

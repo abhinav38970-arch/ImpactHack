@@ -69,11 +69,19 @@ export interface ProfileState {
   checkins: CheckIn[];
   reflections: Reflection[];
   /**
-   * Draft appointment questions saved from LiverLoop Guide (or added
-   * manually). At most MAX_SELECTED_DRAFTS may be selected for the future
-   * Visit Prep report. Phase 3+. Migration fills [].
+   * Draft appointment questions (Guide suggestions, library picks, custom).
+   * At most MAX_SELECTED_DRAFTS may be selected for the Visit Prep report.
    */
   guideDrafts: GuideDraft[];
+  /**
+   * Revision counters for Visit Prep staleness. recordsRev bumps on any
+   * report-relevant record change (entries, habits, check-ins, reflections,
+   * report period inclusion); contentRev bumps on questions/notes/items
+   * changes. Phase 4+. Migration starts both at 0.
+   */
+  recordsRev: number;
+  contentRev: number;
+  visitPrep: VisitPrepState;
   updatedAt: string;
 }
 
@@ -150,13 +158,48 @@ export interface Reflection {
 }
 
 /**
- * A draft appointment question kept for the future Visit Prep report.
- * Saving never rewrites anything else and never touches report state
- * (there is no report state yet — that milestone owns invalidation).
+ * A draft appointment question kept for the Visit Prep report.
+ * `source` records where it came from; all sources share one store so
+ * Guide suggestions are never lost or duplicated by Visit Prep.
  */
 export interface GuideDraft {
   id: string;
   text: string;
   selected: boolean;
+  source?: 'guide' | 'library' | 'custom';
   createdAt: string;
+}
+
+/** Independent reporting period for Visit Prep / report. */
+export type ReportPeriod =
+  | { kind: 'days'; days: 30 | 90 }
+  | { kind: 'all' }
+  | { kind: 'custom'; from: string; to: string };
+
+/** A user-defined preparation item ("Find my September report"). */
+export interface PrepItem {
+  id: string;
+  text: string;
+  done: boolean;
+  createdAt: string;
+}
+
+/**
+ * Visit preparation state. Review/preview store the revision numbers AND
+ * the included record-ID set they were confirmed against, so any relevant
+ * change — or a period change that alters the set — marks them stale
+ * without fragile timestamp comparisons.
+ */
+export interface VisitPrepState {
+  period: ReportPeriod;
+  noQuestions: boolean;
+  notes: string;
+  noNotes: boolean;
+  items: PrepItem[];
+  reviewedRecordsRev: number | null;
+  reviewedRecordIds: string[] | null;
+  previewRecordsRev: number | null;
+  previewContentRev: number | null;
+  previewRecordIds: string[] | null;
+  previewPeriod: ReportPeriod | null;
 }

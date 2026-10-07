@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_SELECTED_DRAFTS, addDraft, removeDraft, selectedDrafts, toggleDraftSelected } from './visitDrafts';
+import { MAX_SELECTED_DRAFTS, addDraft, moveDraft, removeDraft, selectedDrafts, toggleDraftSelected } from './visitDrafts';
 import type { GuideDraft } from './types';
 
 function draft(id: string, text = 'Question?', selected = false): GuideDraft {
@@ -38,5 +38,23 @@ describe('visit drafts', () => {
     expect(removeDraft(drafts, 'a')).toEqual([]);
     expect(addDraft([], draft('b', '')).drafts).toEqual([]);
     expect(addDraft([], draft('c', 'x'.repeat(201))).drafts).toEqual([]);
+  });
+
+  it('dedupes identical questions instead of storing twice', () => {
+    const first = addDraft([], draft('a', 'What does this mean?'));
+    const second = addDraft(first.drafts, draft('b', '  what does this mean?  '));
+    expect(second.duplicate).toBe(true);
+    expect(second.drafts).toHaveLength(1);
+  });
+
+  it('reorders drafts without losing selection', () => {
+    let drafts: GuideDraft[] = [];
+    for (const [i, t] of ['Q1?', 'Q2?', 'Q3?'].entries()) {
+      drafts = addDraft(drafts, draft(`d${i}`, t)).drafts;
+    }
+    const moved = moveDraft(drafts, 'd0', 1);
+    expect(moved.map((d) => d.id)).toEqual(['d1', 'd0', 'd2']);
+    expect(moveDraft(moved, 'd2', 1)).toEqual(moved);
+    expect(moveDraft(moved, 'd1', -1)).toEqual(moved);
   });
 });
