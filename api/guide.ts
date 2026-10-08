@@ -56,6 +56,20 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
     readJsonBody(req),
     clientIp(req),
   );
+  if (result.status !== 200) {
+    // Minimal safe diagnostics for Vercel runtime logs: internal category
+    // plus HTTP statuses only. Never keys, headers, chat content, records,
+    // or provider response bodies.
+    const code = 'error' in result.body ? result.body.error.code : 'unknown';
+    console.log(
+      JSON.stringify({
+        scope: 'guide',
+        httpStatus: result.status,
+        code,
+        providerStatus: result.log?.providerStatus ?? null,
+      }),
+    );
+  }
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Cache-Control', 'no-store');
   res.status(result.status).json(result.body);

@@ -30,7 +30,7 @@ export default function Shell() {
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto flex min-h-screen max-w-6xl">
+      <div className="mx-auto flex min-h-screen w-full max-w-[1440px]">
         {/* Desktop sidebar — hidden in print */}
         <aside className="no-print hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-200 bg-white/70 p-4 md:flex">
           <button
@@ -87,7 +87,7 @@ export default function Shell() {
             )}
           </header>
 
-          <main className="mx-auto w-full max-w-4xl flex-1 space-y-4 px-4 pb-24 pt-4 md:px-6 md:pb-12">
+          <main className="mx-auto w-full max-w-6xl flex-1 space-y-4 px-4 pb-24 pt-4 md:px-8 md:pb-12">
             <DemoBanner />
             <Outlet />
           </main>

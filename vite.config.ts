@@ -63,6 +63,21 @@ export function attachGuideApi(server: GuideMiddlewareServer) {
           body,
           req.socket?.remoteAddress ?? 'unknown',
         );
+        if (result.status !== 200) {
+          // Same safe diagnostics as api/guide.ts: category + statuses only.
+          const code =
+            result.body && typeof result.body === 'object' && 'error' in result.body
+              ? (result.body as { error: { code: unknown } }).error.code
+              : 'unknown';
+          console.log(
+            JSON.stringify({
+              scope: 'guide',
+              httpStatus: result.status,
+              code,
+              providerStatus: result.log?.providerStatus ?? null,
+            }),
+          );
+        }
         res.statusCode = result.status;
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Cache-Control', 'no-store');

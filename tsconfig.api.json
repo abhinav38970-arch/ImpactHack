@@ -1,0 +1,12 @@
+{
+  // Server/API project: Vercel function in api/ plus the shared
+  // server-side Guide modules it imports from src/lib/guide/.
+  // Checked by `npm run typecheck:api` and as part of `npm run typecheck`.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"],
+    "lib": ["ES2022"]
+  },
+  "include": ["api"]
+}

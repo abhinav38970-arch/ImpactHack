@@ -15,43 +15,43 @@ export default function Opening() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 pt-6">
+    <div className="mx-auto w-full max-w-5xl space-y-6 pt-8 md:pt-12">
       <div className="text-center">
         <span
           aria-hidden
-          className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-loop-teal text-2xl font-bold text-white"
+          className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-loop-teal text-3xl font-bold text-white md:h-20 md:w-20 md:text-4xl"
         >
           L
         </span>
-        <h1 className="mt-3 text-2xl font-bold text-loop-ink">LiverLoop</h1>
-        <p className="mx-auto mt-1 max-w-md text-sm text-slate-600">
+        <h1 className="mt-4 text-3xl font-bold text-loop-ink md:text-5xl">LiverLoop</h1>
+        <p className="mx-auto mt-2 max-w-2xl text-base text-slate-600 md:text-lg">
           Understand your numbers. Build better habits. Prepare for your next
           appointment.
         </p>
       </div>
 
-      <section className="card !bg-loop-teal !text-white" aria-label="Why LiverLoop matters">
-        <h2 className="text-base font-bold">
+      <section className="card !bg-loop-teal !text-white md:p-8" aria-label="Why LiverLoop matters">
+        <h2 className="text-lg font-bold md:text-2xl">
           Fatty liver disease is common. Day-to-day support is rare.
         </h2>
-        <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-xl bg-white/10 px-2 py-3">
-            <dt className="order-2 mt-1 block text-[11px] leading-tight text-white/80">
+        <dl className="mt-4 grid grid-cols-3 gap-3 text-center md:gap-4">
+          <div className="rounded-xl bg-white/10 px-2 py-4 md:py-6">
+            <dt className="order-2 mt-1 block text-[11px] leading-tight text-white/80 md:text-sm">
               people live with MASLD worldwide
             </dt>
-            <dd className="order-1 text-xl font-bold sm:text-2xl">1.3B</dd>
+            <dd className="order-1 text-2xl font-bold sm:text-3xl md:text-4xl">1.3B</dd>
           </div>
-          <div className="rounded-xl bg-white/10 px-2 py-3">
-            <dt className="order-2 mt-1 block text-[11px] leading-tight text-white/80">
+          <div className="rounded-xl bg-white/10 px-2 py-4 md:py-6">
+            <dt className="order-2 mt-1 block text-[11px] leading-tight text-white/80 md:text-sm">
               projected by 2050
             </dt>
-            <dd className="order-1 text-xl font-bold sm:text-2xl">1.8B</dd>
+            <dd className="order-1 text-2xl font-bold sm:text-3xl md:text-4xl">1.8B</dd>
           </div>
-          <div className="rounded-xl bg-white/10 px-2 py-3">
-            <dt className="order-2 mt-1 block text-[11px] leading-tight text-white/80">
+          <div className="rounded-xl bg-white/10 px-2 py-4 md:py-6">
+            <dt className="order-2 mt-1 block text-[11px] leading-tight text-white/80 md:text-sm">
               of US adults affected
             </dt>
-            <dd className="order-1 text-xl font-bold sm:text-2xl">1 in 4</dd>
+            <dd className="order-1 text-2xl font-bold sm:text-3xl md:text-4xl">1 in 4</dd>
           </div>
         </dl>
         <p className="mt-3 text-sm text-white/90">

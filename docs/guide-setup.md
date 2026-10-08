@@ -21,6 +21,9 @@ Rules that are enforced by construction, not just policy:
 - No `VITE_*` variable may hold a secret (Vite would ship it to browsers).
 - The key is never in React code, localStorage, chat history, responses,
   logs, or error messages. Tests assert the request payload shape.
+- The project pins Node `22.x` (`engines` in package.json; Vercel supports
+  22.x — Node 20 is deprecated Oct 2026). Server code is typechecked by
+  `tsconfig.api.json` with `@types/node`; browser code stays Node-free.
 
 If a key was ever pasted into chat, a ticket, or committed by mistake,
 **rotate it** at https://console.groq.com/keys and replace it in the two

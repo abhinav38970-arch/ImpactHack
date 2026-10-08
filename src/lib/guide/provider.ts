@@ -34,7 +34,7 @@ export interface ProviderCallInput {
 
 export type ProviderResult =
   | { ok: true; content: string }
-  | { ok: false; code: 'provider_timeout' | 'rate_limited' | 'auth_error' | 'provider_error' | 'bad_response'; retryAfterSeconds?: number };
+  | { ok: false; code: 'provider_timeout' | 'rate_limited' | 'auth_error' | 'provider_error' | 'bad_response'; retryAfterSeconds?: number; providerStatus?: number };
 
 const GUIDE_JSON_SCHEMA = {
   type: 'object',
@@ -86,13 +86,13 @@ export async function callGroq(input: ProviderCallInput): Promise<ProviderResult
       signal: controller.signal,
     });
     if (res.status === 429) {
-      return { ok: false, code: 'rate_limited', retryAfterSeconds: parseRetryAfter(res.headers) };
+      return { ok: false, code: 'rate_limited', retryAfterSeconds: parseRetryAfter(res.headers), providerStatus: 429 };
     }
     if (res.status === 401 || res.status === 403) {
-      return { ok: false, code: 'auth_error' };
+      return { ok: false, code: 'auth_error', providerStatus: res.status };
     }
     if (!res.ok) {
-      return { ok: false, code: 'provider_error' };
+      return { ok: false, code: 'provider_error', providerStatus: res.status };
     }
     let data: unknown;
     try {

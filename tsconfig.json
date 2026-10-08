@@ -14,7 +14,11 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    // Frontend only: no global @types packages. Node globals must stay
+    // unavailable in browser code (the API key must never typecheck here).
+    // api/ has its own tsconfig with Node types.
+    "types": []
   },
   "include": ["src"]
 }

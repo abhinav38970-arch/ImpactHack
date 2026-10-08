@@ -27,6 +27,10 @@ export interface HandlerDeps {
 export interface HandlerResult {
   status: number;
   body: GuideResponse | { error: { code: GuideErrorCode; message: string; retryAfterSeconds?: number } };
+  /** Server-side diagnostics only: safe category + provider HTTP status.
+   *  Never serialized to the browser. Never contains keys, headers,
+   *  chat content, records, or provider response bodies. */
+  log?: { providerStatus?: number };
 }
 
 function err(status: number, code: GuideErrorCode, retryAfterSeconds?: number): HandlerResult {
@@ -82,13 +86,16 @@ export async function handleGuideRequest(
   if (!result.ok) {
     switch (result.code) {
       case 'provider_timeout':
-        return err(504, 'provider_timeout');
+        return { ...err(504, 'provider_timeout'), log: {} };
       case 'rate_limited':
-        return err(429, 'rate_limited', result.retryAfterSeconds);
+        return {
+          ...err(429, 'rate_limited', result.retryAfterSeconds),
+          log: { providerStatus: result.providerStatus },
+        };
       case 'auth_error':
       case 'provider_error':
       case 'bad_response':
-        return err(502, 'provider_error');
+        return { ...err(502, 'provider_error'), log: { providerStatus: result.providerStatus } };
     }
   }
 
