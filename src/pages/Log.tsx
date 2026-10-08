@@ -31,12 +31,12 @@ export default function Log() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
+    <div className="mx-auto max-w-3xl space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
         <div>
-          <h1 className="text-xl font-bold text-loop-ink">Log</h1>
-          <p className="text-sm text-slate-500">
-            Record results and measurements with their original values, units, and dates.
+          <h1 className="page-title">Log</h1>
+          <p className="page-sub">
+            Record with original values, units + dates. Nothing is judged here.
           </p>
         </div>
         {!showForm && !editing && (

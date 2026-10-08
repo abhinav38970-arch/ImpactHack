@@ -25,6 +25,20 @@ function guideApiPlugin() {
 }
 
 export function attachGuideApi(server: GuideMiddlewareServer) {
+  // Shared in-memory limiter for `npm run dev` so the 10 req/min guardrail
+  // actually works across requests (previously a fresh limiter was created
+  // per request, disabling rate-limiting locally). Prod uses api/guide.ts
+  // process-local limiter; both are judge-demo guardrails only.
+  let limiterPromise: Promise<any> | null = null;
+  function getLimiter() {
+    if (!limiterPromise) {
+      limiterPromise = server
+        .ssrLoadModule('/src/lib/guide/ratelimit.ts')
+        .then((m) => new m.SlidingWindowLimiter())
+        .catch(() => null);
+    }
+    return limiterPromise;
+  }
   server.middlewares.use((req: any, res: any, next: () => void) => {
     if (req.url !== '/api/guide' && req.url?.split('?')[0] !== '/api/guide') {
       next();
@@ -58,8 +72,9 @@ export function attachGuideApi(server: GuideMiddlewareServer) {
       }
       try {
         const mod = await server.ssrLoadModule('/src/lib/guide/handler.ts');
+        const limiter = await getLimiter();
         const result = await mod.handleGuideRequest(
-          { fetchImpl: fetch, env: process.env },
+          { fetchImpl: fetch, env: process.env, limiter: limiter ?? undefined },
           body,
           req.socket?.remoteAddress ?? 'unknown',
         );

@@ -67,8 +67,11 @@ export default function Trends() {
 
   if (kindsWithData.length === 0) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-xl font-bold text-loop-ink">Trends</h1>
+      <div className="mx-auto max-w-3xl space-y-4">
+        <div>
+          <h1 className="page-title">Trends</h1>
+          <p className="page-sub">One metric at a time — with dates, units + context.</p>
+        </div>
         <EmptyState
           title="No entries to chart yet"
           body="Record a lab result, measurement, or activity in Log first. Trends appear here with their dates and units — one metric at a time."
@@ -85,10 +88,10 @@ export default function Trends() {
   const spec = activeKind ? METRICS[activeKind] : null;
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-3xl space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-loop-ink">Trends</h1>
-        <p className="text-sm text-slate-500">
+        <h1 className="page-title">Trends</h1>
+        <p className="page-sub">
           One metric at a time, with dates and units. Shown together with
           habits elsewhere never means one caused the other.
         </p>

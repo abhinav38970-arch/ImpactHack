@@ -89,14 +89,14 @@ export default function Habits() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
+    <div className="mx-auto max-w-3xl space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
         <div>
-          <h1 className="text-xl font-bold text-loop-ink">Habits</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="page-title">Habits</h1>
+          <p className="page-sub">
             {actives.length === 0
-              ? 'Choose up to three habits to track.'
-              : `This week: ${summaryText(overall)}`}
+              ? 'Start tiny — up to 3 habits. Only planned days count.'
+              : `This week: ${summaryText(overall)} · Small steps count.`}
           </p>
         </div>
         {!showCreate && editingId === null && (

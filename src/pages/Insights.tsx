@@ -74,9 +74,9 @@ export default function Insights() {
     <div className="mx-auto max-w-2xl space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <div>
-          <h1 className="text-xl font-bold text-loop-ink">Insights</h1>
-          <p className="text-sm text-slate-500">
-            Plain summaries of what you recorded — counted, never interpreted.
+          <h1 className="page-title">Insights</h1>
+          <p className="page-sub">
+            Plain counts of what you recorded — never interpreted.
           </p>
         </div>
         <div className="ml-auto flex gap-2" role="group" aria-label="Summary period">
@@ -265,16 +265,16 @@ export default function Insights() {
         </div>
       </section>
 
-      <div className="card">
+      <div className="card !bg-loop-teal !text-white">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm font-semibold text-loop-ink">LiverLoop Guide</p>
-          <Link to="/insights/guide" className="btn-secondary ml-auto !py-2 text-xs">
-            Open the Guide
+          <div>
+            <p className="text-sm font-bold">LiverLoop Guide</p>
+            <p className="text-xs text-white/85">App help + verified learning. Or tap 💬 anytime.</p>
+          </div>
+          <Link to="/insights/guide" className="ml-auto inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-xs font-bold text-loop-teal hover:bg-loop-mist">
+            Open the Guide →
           </Link>
         </div>
-        <p className="hint-text">
-          Educational assistant for app help and verified learning material. No diagnosis, no personal interpretation.
-        </p>
       </div>
 
       <div className="card">

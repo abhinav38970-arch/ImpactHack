@@ -89,7 +89,10 @@ export default function Settings() {
 
   return (
     <div className="mx-auto max-w-xl space-y-4">
-      <h1 className="text-xl font-bold text-loop-ink">Settings</h1>
+      <div>
+        <h1 className="page-title">Settings</h1>
+        <p className="page-sub">Profile, switching, exports. Data stays in this browser.</p>
+      </div>
 
       <section className="card space-y-3" aria-label="Profile">
         <h2 className="text-base font-bold text-loop-ink">

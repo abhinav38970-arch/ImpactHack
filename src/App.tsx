@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import GuideFab from './components/GuideFab';
 import Shell from './components/Shell';
 import Dashboard from './pages/Dashboard';
 import Guide from './pages/Guide';
@@ -85,6 +86,7 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <GuideFab />
     </BrowserRouter>
   );
 }

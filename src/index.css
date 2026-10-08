@@ -4,9 +4,28 @@
 
 @layer base {
   body {
-    @apply bg-loop-mist text-loop-ink antialiased;
+    @apply text-loop-ink antialiased;
     font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
       'Helvetica Neue', Arial, sans-serif;
+    background:
+      radial-gradient(1200px 400px at 50% -120px, #dff0e9 0%, transparent 60%),
+      #f1f5f4;
+  }
+  ::selection {
+    background: #cdebdd;
+  }
+  main {
+    animation: page-in 0.25s ease-out;
+  }
+  @keyframes page-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 }
 
@@ -38,13 +57,13 @@
 
 @layer components {
   .card {
-    @apply rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5;
+    @apply rounded-2xl bg-white p-5 shadow-[0_1px_2px_rgba(30,42,40,0.06),0_8px_24px_-12px_rgba(14,124,123,0.18)] ring-1 ring-black/5 transition-shadow;
   }
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-xl bg-loop-teal px-4 py-2.5 text-sm font-semibold text-white hover:bg-loop-tealDark disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-xl bg-loop-teal px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:bg-loop-tealDark hover:shadow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-loop-teal ring-1 ring-inset ring-loop-teal/30 hover:bg-loop-mist;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-loop-teal ring-1 ring-inset ring-loop-teal/30 transition hover:-translate-y-px hover:bg-loop-mist hover:ring-loop-teal/50 active:translate-y-0;
   }
   .btn-danger {
     @apply inline-flex items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-red-700 ring-1 ring-inset ring-red-300 hover:bg-red-50;
@@ -62,9 +81,21 @@
     @apply mt-1 text-xs text-slate-500;
   }
   .nav-link {
-    @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-loop-mist hover:text-loop-ink;
+    @apply relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-loop-mist hover:text-loop-ink;
   }
   .nav-link-active {
-    @apply bg-loop-mint/60 text-loop-ink;
+    @apply bg-loop-mint/60 font-semibold text-loop-ink;
+  }
+  .page-title {
+    @apply text-2xl font-bold tracking-tight text-loop-ink;
+  }
+  .page-sub {
+    @apply mt-0.5 text-sm text-slate-500;
+  }
+  .step-pill {
+    @apply inline-flex h-6 w-6 items-center justify-center rounded-full bg-loop-mist text-xs font-bold text-slate-500;
+  }
+  .step-pill-done {
+    @apply bg-loop-teal text-white;
   }
 }

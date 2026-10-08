@@ -172,12 +172,19 @@ export default function Visit() {
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-loop-ink">Visit Prep</h1>
-        <p className="text-sm text-slate-500">
-          {visitDate ? `Appointment: ${formatLong(visitDate)}.` : 'No appointment date set — add one in Settings.'}{' '}
-          <strong className="text-loop-ink">{doneCount} of 4 preparation tasks completed.</strong>{' '}
-          Task completion only — not medical readiness.
+        <h1 className="page-title">Visit Prep</h1>
+        <p className="page-sub">
+          {visitDate ? `Appointment: ${formatLong(visitDate)}.` : 'No date set — add one in Settings.'}{' '}
+          <strong className="text-loop-ink">{doneCount} of 4 done.</strong> Completion only — not medical readiness.
         </p>
+        <div className="mt-2 flex items-center gap-1.5" aria-label={`${doneCount} of 4 tasks done`}>
+          {[tasks.review, tasks.questions, tasks.notes, tasks.preview].map((done, i) => (
+            <span key={i} className={`step-pill ${done ? 'step-pill-done' : ''}`} aria-label={done ? `Step ${i + 1} done` : `Step ${i + 1} todo`}>
+              {done ? '✓' : i + 1}
+            </span>
+          ))}
+          <span className="ml-1 text-xs text-slate-500">Review → Questions → Notes → Preview</span>
+        </div>
       </div>
 
       <section className="card space-y-2" aria-label="Reporting period">

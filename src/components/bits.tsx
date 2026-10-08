@@ -7,9 +7,9 @@ export function DemoBanner() {
   return (
     <div
       role="status"
-      className="rounded-xl bg-loop-mint px-4 py-2 text-center text-xs font-semibold text-loop-ink"
+      className="flex items-center justify-center gap-2 rounded-2xl bg-loop-mint/80 px-4 py-2 text-center text-xs font-semibold text-loop-ink ring-1 ring-inset ring-loop-teal/20"
     >
-      Fictional demo data — not a real patient.
+      <span aria-hidden>🧪</span> Fictional demo data (Maya) — not a real patient.
     </div>
   );
 }
@@ -79,11 +79,12 @@ export function EmptyState({
   actionTo: string;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-6 text-center">
-      <p className="text-sm font-semibold text-loop-ink">{title}</p>
+    <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-6 text-center">
+      <p aria-hidden className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-loop-mist text-xl">○</p>
+      <p className="mt-2 text-sm font-bold text-loop-ink">{title}</p>
       <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">{body}</p>
       <Link to={actionTo} className="btn-primary mt-4">
-        {actionLabel}
+        {actionLabel} →
       </Link>
     </div>
   );
