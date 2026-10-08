@@ -124,9 +124,15 @@ export default function GuideFab() {
       )}
 
       {open && (
+        <>
+        <div
+          aria-hidden
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 z-40 bg-loop-ink/20 backdrop-blur-[1px]"
+        />
         <section
           aria-label="LiverLoop Guide chat"
-          className="fixed bottom-20 right-4 z-50 flex max-h-[70vh] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/10 md:bottom-6 md:right-6"
+          className="fixed bottom-20 right-4 z-50 flex max-h-[72vh] w-[calc(100vw-2rem)] max-w-md flex-col overflow-hidden rounded-3xl border border-white/40 bg-white shadow-2xl ring-1 ring-black/10 md:bottom-6 md:right-6"
         >
           <header className="flex items-center gap-2 bg-loop-teal px-4 py-3 text-white">
             <span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20 font-bold">L</span>
@@ -201,11 +207,35 @@ export default function GuideFab() {
                 {sending && <p className="text-xs text-slate-500" role="status">Guide is responding…</p>}
                 {error && (
                   <div role="alert" className="rounded-xl bg-red-50 p-2.5 text-xs text-red-900 ring-1 ring-red-200">
-                    <p className="font-semibold">{errorCode === 'not_configured' ? 'Live Guide is not configured.' : 'Guide could not respond.'}</p>
+                    <p className="font-semibold">
+                      {errorCode === 'not_configured'
+                        ? 'Live Guide is not configured.'
+                        : /rejected|invalid|expired/i.test(error)
+                          ? 'Guide key was rejected.'
+                          : 'Guide could not respond.'}
+                    </p>
                     <p className="mt-0.5">{error}</p>
                     {errorCode === 'not_configured' ? (
-                      <p className="mt-1 text-slate-600">You can still use Log, Trends, Habits. On Vercel this works once <code>GROQ_API_KEY</code> is set.</p>
+                      <p className="mt-1 text-slate-600">You can still use Log, Trends, Habits. On Vercel this works once <code>GROQ_API_KEY</code> is set for all environments + Redeploy.</p>
+                    ) : /rejected|invalid|expired/i.test(error) ? (
+                      <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-slate-700">
+                        <li>Create a fresh key at console.groq.com/keys</li>
+                        <li>Vercel → Settings → Environment Variables → GROQ_API_KEY → all environments</li>
+                        <li>Redeploy, then retry here</li>
+                      </ol>
                     ) : (
+                      <p className="mt-1 text-slate-600">If this persists on Vercel: check Functions → /api/guide logs for <code>scope:guide</code> (safe status codes only, never keys).</p>
+                    )}
+                    {/rejected|invalid|expired/i.test(error) && errorCode !== 'not_configured' ? (
+                      <button
+                        onClick={() => lastPayload.current && execute(lastPayload.current.text, lastPayload.current.history)}
+                        disabled={sending}
+                        className="mt-1.5 rounded-lg bg-white px-2.5 py-1 font-semibold text-loop-teal ring-1 ring-loop-teal/30"
+                      >
+                        Retry after fixing key
+                      </button>
+                    ) : null}
+                    {errorCode !== 'not_configured' && !/rejected|invalid|expired/i.test(error) ? (
                       <button
                         onClick={() => lastPayload.current && execute(lastPayload.current.text, lastPayload.current.history)}
                         disabled={sending}
@@ -213,7 +243,7 @@ export default function GuideFab() {
                       >
                         Retry
                       </button>
-                    )}
+                    ) : null}
                   </div>
                 )}
                 <div ref={bottomRef} />
@@ -244,6 +274,7 @@ export default function GuideFab() {
             </form>
           )}
         </section>
+        </>
       )}
     </div>
   );

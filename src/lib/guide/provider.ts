@@ -34,7 +34,7 @@ export interface ProviderCallInput {
 
 export type ProviderResult =
   | { ok: true; content: string }
-  | { ok: false; code: 'provider_timeout' | 'rate_limited' | 'auth_error' | 'provider_error' | 'bad_response'; retryAfterSeconds?: number; providerStatus?: number };
+  | { ok: false; code: 'provider_timeout' | 'rate_limited' | 'auth_error' | 'provider_error' | 'bad_response' | 'bad_request_strict'; retryAfterSeconds?: number; providerStatus?: number };
 
 const GUIDE_JSON_SCHEMA = {
   type: 'object',
@@ -51,16 +51,19 @@ export function buildGroqBody(
   model: string,
   messages: ProviderMessage[],
   maxCompletionTokens: number,
+  strict = true,
 ): Record<string, unknown> {
   return {
     model,
     messages,
     temperature: 0.2,
     max_completion_tokens: maxCompletionTokens,
-    response_format: {
-      type: 'json_schema',
-      json_schema: { name: 'liverloop_guide', strict: true, schema: GUIDE_JSON_SCHEMA },
-    },
+    response_format: strict
+      ? {
+          type: 'json_schema',
+          json_schema: { name: 'liverloop_guide', strict: true, schema: GUIDE_JSON_SCHEMA },
+        }
+      : { type: 'json_object' },
   };
 }
 
@@ -73,6 +76,14 @@ function parseRetryAfter(headers: Headers): number | undefined {
 }
 
 export async function callGroq(input: ProviderCallInput): Promise<ProviderResult> {
+  // First attempt: strict structured outputs. Some Groq-hosted models reject
+  // `json_schema.strict` with 400 — fall back to plain json_object mode once.
+  const first = await postChat(input, true);
+  if (first.ok || first.code !== 'bad_request_strict') return first;
+  return postChat(input, false);
+}
+
+async function postChat(input: ProviderCallInput, strict: boolean): Promise<ProviderResult> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), input.timeoutMs);
   try {
@@ -82,7 +93,7 @@ export async function callGroq(input: ProviderCallInput): Promise<ProviderResult
         Authorization: `Bearer ${input.apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(buildGroqBody(input.model, input.messages, input.maxCompletionTokens)),
+      body: JSON.stringify(buildGroqBody(input.model, input.messages, input.maxCompletionTokens, strict)),
       signal: controller.signal,
     });
     if (res.status === 429) {
@@ -90,6 +101,10 @@ export async function callGroq(input: ProviderCallInput): Promise<ProviderResult
     }
     if (res.status === 401 || res.status === 403) {
       return { ok: false, code: 'auth_error', providerStatus: res.status };
+    }
+    if (res.status === 400 && strict) {
+      // Likely strict schema unsupported — caller retries without strict.
+      return { ok: false, code: 'bad_request_strict', providerStatus: 400 };
     }
     if (!res.ok) {
       return { ok: false, code: 'provider_error', providerStatus: res.status };

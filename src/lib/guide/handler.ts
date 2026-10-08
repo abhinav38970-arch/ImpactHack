@@ -93,15 +93,31 @@ export async function handleGuideRequest(
           log: { providerStatus: result.providerStatus },
         };
       case 'auth_error':
+        // Key present but Groq rejected it (401/403): expired, revoked, or
+        // pasted with whitespace. Safe message — never echoes the key.
+        return {
+          status: 502,
+          body: {
+            error: {
+              code: 'provider_error',
+              message:
+                'The Guide key was rejected by the AI provider (invalid or expired). Create a fresh key at console.groq.com/keys, update GROQ_API_KEY in Vercel, then Redeploy.',
+            },
+          },
+          log: { providerStatus: result.providerStatus },
+        };
+      case 'bad_request_strict':
       case 'provider_error':
       case 'bad_response':
         return { ...err(502, 'provider_error'), log: { providerStatus: result.providerStatus } };
     }
   }
 
+  // Models in json_object fallback mode sometimes wrap JSON in fences.
+  let text = result.content.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
   let modelJson: unknown;
   try {
-    modelJson = JSON.parse(result.content);
+    modelJson = JSON.parse(text);
   } catch {
     return err(502, 'invalid_output');
   }

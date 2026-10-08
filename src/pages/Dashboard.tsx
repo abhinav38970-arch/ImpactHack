@@ -99,8 +99,8 @@ export default function Dashboard() {
           };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="w-full max-w-6xl space-y-5">
+      <div className="flex flex-wrap items-center gap-3">
         <div>
           <h1 className="text-2xl font-bold text-loop-ink">
             {greetingForHour(new Date().getHours())}, {name}
@@ -134,8 +134,10 @@ export default function Dashboard() {
         </Link>
       </section>
 
+      {/* Today + Progress side by side on wide screens */}
+      <div className="grid gap-5 xl:grid-cols-5">
       {/* Today — single focus card */}
-      <section className="card" aria-label="Today">
+      <section className="card xl:col-span-2" aria-label="Today">
         <div className="flex items-center">
           <h2 className="text-base font-bold text-loop-ink">Today</h2>
           <Link to="/habits" className="ml-auto text-xs font-semibold text-loop-teal underline">Open Habits</Link>
@@ -171,7 +173,7 @@ export default function Dashboard() {
       </section>
 
       {/* Progress — tabbed, not crammed */}
-      <section className="card" aria-label="Progress at a glance">
+      <section className="card xl:col-span-3" aria-label="Progress at a glance">
         <div className="flex items-center gap-2">
           <h2 className="text-base font-bold text-loop-ink">Progress</h2>
           <div className="ml-auto flex gap-1 rounded-full bg-loop-mist p-1" role="tablist" aria-label="Progress views">
@@ -269,6 +271,7 @@ export default function Dashboard() {
           </div>
         )}
       </section>
+      </div>
 
       <details className="card !py-3" aria-label="Tip of the day">
         <summary className="cursor-pointer text-sm font-semibold text-loop-ink">Tip of the day · <span className="font-normal text-slate-500">verified learning</span></summary>
